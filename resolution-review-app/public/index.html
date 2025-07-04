@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Review Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        /* Tab Content Styles */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Dashboard Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .stat-info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .stat-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .stat-warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        /* Sticky progress section */
+        .sticky-progress {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            margin-bottom: 20px;
+        }
+
+        .sticky-progress .progress-bar {
+            margin: 10px 0 5px 0;
+        }
+
+        /* Sticky video player */
+        .sticky-video-section {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+        }
+
+        .sticky-video-section .progress-bar {
+            margin: 10px 0 15px 0;
+        }
+
+        .video-player-sticky {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .video-player-sticky .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .video-player-sticky .card-body {
+            padding: 20px;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Review Tool Styles */
+        .review-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .review-container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 200px);
+            max-width: none;
+            margin: 0;
+        }
+
+        .review-left-column {
+            width: 50%;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .review-right-column {
+            width: 50%;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .review-right-column::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .review-right-column::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .review-right-column::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .review-right-column::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"], .checkbox-item input[type="radio"] {
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .checkbox-item label {
+            margin-bottom: 0;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .step-counter {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .insight-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .insight-content {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Add CSS for highlight */
+        .event-step.active { background: #e3f2fd !important; font-weight: bold; }
+
+        /* Add CSS for .timeline-step and .timeline-badge */
+        .timeline-list { list-style: none; padding-left: 0; }
+        .timeline-step {
+            background: #fff;
+            border-left: 4px solid #667eea;
+            margin-bottom: 18px;
+            padding: 16px 18px 16px 18px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(102,126,234,0.07);
+            position: relative;
+        }
+        .timeline-badge {
+            display: inline-block;
+            background: #667eea;
+            color: #fff;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            text-align: center;
+            line-height: 26px;
+            font-weight: bold;
+            font-size: 15px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .timeline-step .timeline-meta { color: #888; font-size: 13px; margin-left: 6px; }
+        .timeline-step .timeline-action, .timeline-step .timeline-page, .timeline-step .timeline-target { display: block; color: #555; font-size: 14px; margin-top: 2px; }
+
+        .timeline-list .timeline-step:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="display: inline-block;">🎥 Video Review Management System</h1>
+            
+            <p>Complete video review and dashboard tracking solution</p>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="showTab('training')">🎓 Training - Do This First</button>
+                <button class="tab-button" onclick="showTab('review')">✏️ Review Tool</button>
+                <button class="tab-button" onclick="showTab('dashboard')">📊 Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Training Tab Content -->
+        <div id="training-tab" class="tab-content active">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2>🎓 Training - Do This First</h2>
+                <p>Get familiar with the video review process before starting</p>
+            </div>
+            
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="step-counter">📋</span>Training Overview
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size: 18px; margin-bottom: 20px; color: #495057;">
+                            Welcome to the Video Review Training! This will help you understand how to effectively review advisor resolution videos.
+                        </p>
+                        
+                        <div class="alert alert-info">
+                            <strong>📌 Important:</strong> Please complete this training before reviewing actual videos. It will only take 5-10 minutes and will ensure consistent, high-quality reviews.
+                        </div>
+                        
+                        <h4 style="margin: 25px 0 15px 0; color: #333;">What You'll Learn:</h4>
+                        <ul style="line-height: 1.8; color: #555; margin-left: 20px;">
+                            <li>Watch advisor resolution videos and review the timeline</li>
+                            <li>Flag missing, unclear, or extra steps</li>
+                            <li>Decide if the problem was resolved and how</li>
+                            <li>Select the right <strong>Resolution Category</strong></li>
+                            <li>Check if the AI got the customer intent right</li>
+                            <li>Submit your review to update the dashboard</li>
+                        </ul>
+                        
+                      </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="step-counter">🎥</span>Training Video
+                    </div>
+                    <div class="card-body">
+                        <div style="background: #f8f9fa; border: 2px dashed #28a745; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; color: #28a745; margin-bottom: 15px;">🎬</div>
+                            <h4 style="color: #495057; margin-bottom: 10px;">Training Video Player</h4>
+                            <p style="color: #6c757d; margin-bottom: 20px;">A sample advisor resolution walkthrough for training purposes</p>
+                            <div style="background: #e8f5e8; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                                <strong>How to: Video Review</strong><br>
+                                
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button type="button" class="btn" style="font-size: 18px; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-top: 10px;" onclick="showTab('review')">
+                                🚀 Start Training Review →
+                            </button>
+                        </div>
+                        <div style="margin: 30px 0 0 0; text-align: center;">
+                            <!-- Removed duplicate Start Training Review button -->
+                        </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header" id="modifying-steps-guide">
+                        <span class="step-counter">📝</span>How to Modify Timeline Steps
+                        <a href="#" onclick="showTab('review'); return false;" style="float: right; font-size: 14px; color: #667eea; text-decoration: underline;">(back to review)</a>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size: 16px; color: #495057; margin-bottom: 18px;">
+                            When reviewing the timeline, you may need to modify, add, or remove steps to ensure accuracy. Here's how:
+                        </p>
+
+                        <h4 style="margin: 20px 0 10px 0; color: #333;">Types of Feedback</h4>
+                        <ul style="line-height: 1.8; color: #555; margin-left: 20px; list-style-type: disc;">
+                            <li><strong>Modify:</strong> Reword steps for better clarity or accuracy.</li>
+                            <li><strong>Remove:</strong> Delete incorrect or unnecessary steps.</li>
+                            <li><strong>Add:</strong> Include missing steps needed to complete the process.</li>
+                        </ul>
+
+                        <h4 style="margin: 25px 0 10px 0; color: #333;">How to Adjust the Steps</h4>
+                        <div style="line-height: 1.8; color: #555; margin-left: 0; padding-left: 0;">
+                            <p>
+                                <strong>Timeline Validation:</strong><br>
+                                Use this field to note major differences between the timeline and the video, such as incorrect or missing steps.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Example: "Step 3 is wrong, the advisor actually did X." or "Missing step between 4 and 5 where merchant confirmed Y."</span>
+                            </p>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <p>
+                                <strong>Step Refinement:</strong><br>
+                                Use this field to suggest better ways a step could have been handled, or to refine the wording.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Example: "For step 2, a better approach would have been to use the Z tool first." or "The wording for step 5 could be clearer."</span>
+                            </p>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <div style="background-color: #fffbe6; border: 1px solid #ffe58f; padding: 15px; border-radius: 6px;">
+                                <p>
+                                    <strong>Adding Missing Steps:</strong><br>
+                                    To insert new steps, use decimal notation to place them between existing steps without renumbering the entire list.
+                                    <br><span style="font-size: 90%; font-style: italic; color: #444;">Example: To add two missing steps between step 1 and step 2, number them as 1.1 and 1.2.</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header" id="resolution-status-guide">
+                        <span class="step-counter">🚦</span>Resolution Status
+                        <a href="#" onclick="showTab('review'); return false;" style="float: right; font-size: 14px; color: #667eea; text-decoration: underline;">(back to review)</a>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size: 16px; color: #495057; margin-bottom: 18px;">
+                            Use this guide to determine the resolution status when reviewing a video.
+                        </p>
+                        <hr style="border: none; border-top: 1px solid #787676; margin: 16px 0;">
+                        <div style="line-height: 1.8; color: #555; margin-left: 0; padding-left: 0;">
+                             <p>
+                                <strong>Problem Resolved Validation:</strong><br>
+                                Did the advisor identify the merchant's problem and provide a resolution?
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Choose "TRUE" if the advisor's resolution is actionable and leads to a solution for the merchant's problem. Otherwise, choose "FALSE".</span>
+                            </p>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                             <p>
+                                <strong>Problem Resolved in Place Validation:</strong><br>
+                                Was the merchant's problem resolved by the advisor during the chat?
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Choose "TRUE" if the advisor confirmed resolution due to actions taken during the chat. 
+                                    <br>Choose "FALSE" if resolution required follow-up, third-party support, or escalation.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header" id="resolution-category-guide">
+                        <span class="step-counter">📋</span>Resolution Category Guide
+                        <a href="#" onclick="showTab('review'); return false;" style="float: right; font-size: 14px; color: #667eea; text-decoration: underline;">(back to review)</a>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size: 16px; color: #495057; margin-bottom: 18px;">
+                            <strong>What do the Resolution Category options mean?</strong> Use this guide to select the right category when reviewing a video. Each option is explained below with when to use it:
+                        </p><hr style="border: none; border-top: 1px solid #787676; margin: 16px 0;">
+                        <ul style="line-height: 1.8; color: #555; margin-left: 0; list-style: none; padding-left: 0;">
+                            <li><strong>Resolved In Place With Action</strong>:<br>
+                                The merchant's issue was successfully resolved during the chat session through the advisor taking direct action in the merchant's admin page or other internal tools.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the advisor performed the fix themselves, and the steps are clearly described.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Resolved In Place With Instruction</strong>:<br>
+                                The merchant's issue was successfully resolved during the chat session by the advisor looking up documentation, clarifying the issue, or providing step-by-step instructions to the merchant.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the merchant followed instructions and the issue was fixed during the chat.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Resolved With Instruction</strong>:<br>
+                                The merchant's issue is not yet resolved, but the advisor provided instructions or guidance on how the merchant could resolve it.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the advisor gave next steps, but the merchant still needs to take action after the chat.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Third Party Involvement</strong>:<br>
+                                The issue requires third-party support or intervention, such as contacting a domain provider or another service.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the solution depends on someone outside Shopify or the merchant.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Escalated</strong>:<br>
+                                The issue was escalated to another team or requires further action outside the chat session.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the advisor handed off the case to another team or specialist.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Follow-up Required</strong>:<br>
+                                The issue requires follow-up actions or additional information from the merchant.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the advisor or merchant needs to provide more info or take more steps after the chat.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>No Action Needed</strong>:<br>
+                                The merchant's issue did not require any action or resolution.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the problem was already solved or didn't need intervention.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Other</strong>:<br>
+                                Any other resolution category that does not fit into the above categories.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this only if none of the other options apply—add a note if you pick this.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div> <!-- This closes the training tab -->
+
+        <!-- Review Tool Tab Content -->
+        <div id="review-tab" class="tab-content">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>🎥 Video Review Tool</h2>
+                <p>Help us improve AI systems by validating resolution paths</p>
+            </div>
+            
+            <div class="review-container">
+                <!-- Left Column: Video Player & Progress -->
+                <div class="review-left-column">
+                    <!-- Progress Bar -->
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                        <span id="progressText">0% Complete</span>
+                    </div>
+                    
+                    <!-- Video Player -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="step-counter">📹</span>Video Player
+                            <span id="videoDuration" style="float: right; font-size: 14px; color: #666;"></span>
+                        </div>
+                        <div class="card-body">
+                            <div id="videoContainer" style="background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px;">
+                                <div style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">🎥</div>
+                                <h4 style="color: #495057; margin-bottom: 10px;">No Video Loaded</h4>
+                                <p style="color: #6c757d; margin-bottom: 20px;">Click "Load Next Video" to start reviewing</p>
+                            </div>
+                            
+                            <!-- HTML5 Video Player (hidden initially) -->
+                            <div id="html5VideoPlayer" style="display: none; margin-bottom: 20px;">
+                                <video id="mainVideo" 
+                                       width="100%" 
+                                       height="400" 
+                                       controls 
+                                       preload="metadata"
+                                       style="border-radius: 8px; background: #000;">
+                                    <source id="videoSource" src="" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                                
+                                <!-- Video Info -->
+                                <div id="videoInfo" style="background: #e9ecef; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                                    <strong>Video Details:</strong><br>
+                                    <span id="videoDetails">Loading...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="loadNextVideoGroup" style="text-align: center; margin-top: 20px;">
+                                <button type="button" class="btn" onclick="loadNextVideo()" style="background: #28a745; font-size: 16px;">🎥 Load Next Video</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Scrollable Questions -->
+                <div class="review-right-column">
+                    <div id="email-capture-section" class="card">
+                        <div class="card-body">
+                            <label for="reviewerEmail">Enter Your Email to Begin</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="email" id="reviewerEmail" class="form-control" placeholder="your.name@shopify.com" required pattern=".*@shopify\\.com$">
+                                <button type="button" class="btn" id="emailLoginBtn" style="background: #28a745;">Login</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="review-form-content" style="display: none;">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="step-counter">📋</span>Interaction Timeline
+                            </div>
+                            <div class="card-body">
+                                <div id="interactionTimeline" style="background: #f8f9fa; padding: 20px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+                                    <p style="color: #666; text-align: center; margin: 0;">Load a video to see the interaction timeline</p>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="reviewForm">
+                            <input type="hidden" id="advisorName" name="advisorName" value="">
+                            <!-- Timeline Review (now Question 1) -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="step-counter">1</span>Timeline Review
+                                    <a href="#modifying-steps-guide" onclick="showTabAndScroll('training', 'modifying-steps-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline;">review the training</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group" style="display: flex; gap: 20px;">
+                                        <div style="flex: 1;">
+                                            <label for="timelineValidation">Timeline Validation</label>
+                                            <textarea id="timelineValidation" class="form-control" rows="4" placeholder="Note differences between the timeline and the video (e.g., incorrect or missing steps)."></textarea>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label for="stepRefinement">Step Refinement</label>
+                                            <textarea id="stepRefinement" class="form-control" rows="4" placeholder="Suggest a better way a step could have been handled, or refine the wording."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Problem Resolution Block -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="step-counter">2</span>Resolution Details
+                                    <a href="#resolution-status-guide" onclick="showTabAndScroll('training', 'resolution-status-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline;">(review the definitions)</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="problem_resolved">Was the problem resolved? <span style="color: red;">*</span></label>
+                                        <select id="problem_resolved" name="problem_resolved" class="form-control" required>
+                                            <option value="">Select...</option>
+                                            <option value="TRUE">TRUE</option>
+                                            <option value="FALSE">FALSE</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="problem_resolved_in_place">Was the problem resolved in place? <span style="color: red;">*</span></label>
+                                        <select id="problem_resolved_in_place" name="problem_resolved_in_place" class="form-control" required>
+                                            <option value="">Select...</option>
+                                            <option value="TRUE">TRUE</option>
+                                            <option value="FALSE">FALSE</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="resolution_category">Resolution Category <span style="color: red;">*</span>
+                                            <a href="#resolution-category-guide" onclick="showTabAndScroll('training', 'resolution-category-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline; vertical-align: middle;">(review the categories)</a>
+                                        </label>
+                                        <select id="resolution_category" name="resolution_category" class="form-control" required>
+                                            <option value="">Select...</option>
+                                            <option value="Third Party Involvement">Third Party Involvement</option>
+                                            <option value="Follow-up Required">Follow-up Required</option>
+                                            <option value="Resolved With Instruction">Resolved With Instruction</option>
+                                            <option value="Escalated">Escalated</option>
+                                            <option value="Resolved In Place With Action">Resolved In Place With Action</option>
+                                            <option value="No Action Needed">No Action Needed</option>
+                                            <option value="Resolved In Place With Instruction">Resolved In Place With Instruction</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tools Used Block -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="step-counter">3</span>Tools Used
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="toolsUsed">Which tools besides Beacon and the Internal Dashboard were used to resolve? <span style="font-weight: normal; color: #6c757d;">(Select all that apply)</span></label>
+                                        <div id="toolsUsedCheckboxes" class="checkbox-group">
+                                            <!-- Checkboxes will be dynamically populated or listed here -->
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Reddit"><label>Reddit</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Community Docs"><label>Community Docs</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="YouTube"><label>YouTube</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Google"><label>Google</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Guru"><label>Guru</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Slack"><label>Slack</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Librechat"><label>Librechat</label></div>
+                                            <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Perplexity"><label>Perplexity</label></div>
+                                            <div class="checkbox-item">
+                                                <input type="checkbox" id="tool_other_checkbox" name="tools_used" value="Other">
+                                                <label for="tool_other_checkbox">Other</label>
+                                            </div>
+                                        </div>
+                                        <input type="text" id="tool_other_text" class="form-control mt-2" placeholder="Please specify other tool(s)" style="display: none; margin-top: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Intent Validation -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="step-counter">4</span>Intent Validation <span style="color: red;">*</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label>AI Identified Intent:</label>
+                                        <div id="ai-intent-display" style="background: #e3f2fd; border: 2px solid #2196f3; padding: 15px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; color: #0d47a1; font-size: 16px;">
+                                            Loading...
+                                        </div>
+                                        
+                                        <!-- AI Intent Validation Checkbox -->
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+                                            <div class="checkbox-item" style="background: transparent; padding: 0;">
+                                                <input type="checkbox" id="ai_intent_correct" name="ai_intent_validation" value="correct">
+                                                <label for="ai_intent_correct" style="font-weight: 600; color: #28a745;">✅ The AI identified the intent correctly</label>
+                                            </div>
+                                            <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+                                                If incorrect, choose the closest match from the list below:
+                                            </p>
+                                        </div>
+                                        
+                                        <label>Which is the most accurate match? <span style="color: red;">*</span></label>
+                                        <div id="intent-matches-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+                                            <!-- Radio buttons will be populated here by JavaScript -->
+                                            <p style="color: #6c757d;">Loading matches...</p>
+                                        </div>
+                                        
+                                        <!-- Other option -->
+                                        <div id="intent-other-section" style="display: none; flex-direction: column; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                                            <div class="checkbox-item">
+                                                <input type="radio" id="intent_match_other" name="intent_match" value="Other">
+                                                <label for="intent_match_other" style="font-weight: 600;">Other (specify below)</label>
+                                            </div>
+                                            <input type="text" id="intent_other_text" class="form-control" placeholder="Enter your own intent description..." style="display: none; margin-top: 8px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="card">
+                                <div class="card-body" style="text-align: center;">
+                                    <button type="submit" class="btn" style="font-size: 18px; padding: 15px 40px;">
+                                        ✅ Submit Review
+                                    </button>
+
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab Content -->
+        <div id="dashboard-tab" class="tab-content">
+            <!-- Key Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalVideos">0</div>
+                    <div class="stat-label">Total Videos</div>
+                    <div class="stat-change stat-info">Available for review</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="reviewedVideos">0</div>
+                    <div class="stat-label">Videos Reviewed</div>
+                    <div class="stat-change stat-info">0% completion</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="videosUnassigned">0</div>
+                    <div class="stat-label">Available Videos</div>
+                    <div class="stat-change stat-success">Ready for assignment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="videosInProgress">0</div>
+                    <div class="stat-label">Videos In Progress</div>
+                    <div class="stat-change stat-warning">Currently being reviewed</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📈 Daily Review Progress (Last 7 Days)</h3>
+                    <canvas id="progressChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 Resolution Categories</h3>
+                    <canvas id="accuracyChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🔧 External Tools Usage</h3>
+                    <canvas id="missingStepsChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🤖 AI Intent Validation</h3>
+                    <canvas id="toolsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="insights-grid">
+                <!-- Insights will be populated with real data from the backend -->
+            </div>
+
+            <!-- Advisor Progress Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>👥 Individual Advisor Progress</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Advisor</th>
+                            <th>Videos Reviewed</th>
+                            <th>Most Used Tool</th>
+                            <th>Last Review</th>
+                        </tr>
+                    </thead>
+                    <tbody id="advisorTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #666; padding: 40px;">
+                                No advisor data available yet. Complete some video reviews to see stats.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Real-time Dashboard Note -->
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <p style="color: #666; margin: 0;">
+                    📊 Dashboard updates automatically with real data from your Google Sheet reviews
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Apps Script Web App URL - UPDATE THIS WITH YOUR DEPLOYED URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/shopify.com/s/AKfycby18ThykZn_zSpRdRNfOtMOe-9bQZupgf39KgKKdgKGqmhwtLBSnMjLMjFF0aSreHok/exec';
+        
+        // Expected data structure from Google Sheets (form_response_event tab):
+        // Column E: Recording of the Interaction (video URL)
+        // Column Q: interaction_timeline (the timeline data to display)
+        // Columns: StoreURL, ticket_id, etc. (basic video info)
+        const SHEET_TAB_NAME = 'form_response_event';
+        
+        // Current video data
+        let currentVideo = null;
+        
+        // Prefetch variable
+        let prefetchedVideo = null;
+        
+        let loggedInEmail = ''; // Variable to store the email
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- New Email Login Logic ---
+            const emailLoginBtn = document.getElementById('emailLoginBtn');
+            const emailInput = document.getElementById('reviewerEmail');
+            const reviewFormContent = document.getElementById('review-form-content');
+            const emailCaptureSection = document.getElementById('email-capture-section');
+
+            emailLoginBtn.addEventListener('click', function() {
+                const email = emailInput.value.trim();
+                if (email && email.includes('@shopify.com')) {
+                    loggedInEmail = email;
+                    document.getElementById('advisorName').value = loggedInEmail; // Set hidden input
+                    
+                    emailCaptureSection.style.display = 'none';
+                    reviewFormContent.style.display = 'block';
+                    
+                    // Automatically load the first video
+                    loadNextVideo();
+                } else {
+                    alert('Please enter a valid @shopify.com email.');
+                }
+            });
+            // --- End New Logic ---
+
+            // Attach form submit handler after DOM is loaded
+            document.getElementById('reviewForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!currentVideo) {
+                    alert('No video is currently loaded. Please load a video first.');
+                    return;
+                }
+                
+                // Custom validation for Intent Validation (Question 4)
+                const aiCorrectValidationCheckbox = document.getElementById('ai_intent_correct');
+                const selectedValidationMatch = document.querySelector('input[name="intent_match"]:checked');
+                
+                if (!aiCorrectValidationCheckbox.checked && !selectedValidationMatch) {
+                    alert('Please complete the Intent Validation section (Question 4): Either check "The AI identified the intent correctly" or select a matching option.');
+                    // Scroll to the intent validation section
+                    document.getElementById('ai-intent-display').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                
+                // If "Other" is selected, ensure text is provided
+                if (selectedValidationMatch && selectedValidationMatch.value === 'Other') {
+                    const otherText = document.getElementById('intent_other_text').value.trim();
+                    if (!otherText) {
+                        alert('Please specify your intent description in the text field.');
+                        document.getElementById('intent_other_text').focus();
+                        return;
+                    }
+                }
+                
+                // Collect form data
+                const formData = new FormData(this);
+                const reviewData = {};
+                
+                // Basic fields
+                for (let [key, value] of formData.entries()) {
+                    if (reviewData[key]) {
+                        if (Array.isArray(reviewData[key])) {
+                            reviewData[key].push(value);
+                        } else {
+                            reviewData[key] = [reviewData[key], value];
+                        }
+                    } else {
+                        reviewData[key] = value;
+                    }
+                }
+                
+                // Add timestamp and advisor name
+                reviewData.submittedAt = new Date().toISOString();
+                reviewData.advisorName = document.getElementById('advisorName').value;
+                
+                // Add timeline and refinement data from the new textareas
+                reviewData.interaction_timeline_validation = document.getElementById('timelineValidation').value;
+                reviewData.interaction_timeline_refinements = document.getElementById('stepRefinement').value;
+                
+                // --- START CHANGE ---
+                // Collect "Tools Used" data
+                const toolsCheckboxes = document.querySelectorAll('input[name="tools_used"]:checked');
+                let toolsUsed = [];
+                toolsCheckboxes.forEach(checkbox => {
+                    if (checkbox.value === 'Other') {
+                        const otherText = document.getElementById('tool_other_text').value.trim();
+                        if (otherText) {
+                            toolsUsed.push(otherText);
+                        }
+                    } else {
+                        toolsUsed.push(checkbox.value);
+                    }
+                });
+                reviewData.tools_used = toolsUsed.join(', ');
+                // --- END CHANGE ---
+
+                // --- START CHANGE ---
+                // Collect intent validation data
+                const aiCorrectCheckbox = document.getElementById('ai_intent_correct');
+                const selectedMatch = document.querySelector('input[name="intent_match"]:checked');
+                
+                if (aiCorrectCheckbox && aiCorrectCheckbox.checked) {
+                    // AI Intent is correct
+                    reviewData.intent_validation_type = 'AI Intent Correct';
+                    reviewData.intent_validation_selection = currentVideo.aiIntent || 'AI Intent Correct';
+                    reviewData.Intent_match_other = ''; // Clear the other field
+                } else if (selectedMatch) {
+                    if (selectedMatch.value === 'Other') {
+                        // Manual correction - user provided their own intent
+                        const otherText = document.getElementById('intent_other_text').value.trim();
+                        reviewData.intent_validation_type = 'Manual Correction';
+                        reviewData.Intent_match_other = otherText;
+                        reviewData.intent_validation_selection = ''; // Clear the main selection
+                    } else {
+                        // Partial match - user selected one of the 6 provided options
+                        reviewData.intent_validation_type = 'Partial Match';
+                        reviewData.intent_validation_selection = selectedMatch.value;
+                        reviewData.Intent_match_other = ''; // Clear the other field
+                    }
+                } else {
+                    // No validation provided
+                    reviewData.intent_validation_type = 'No Validation';
+                    reviewData.intent_validation_selection = '';
+                    reviewData.Intent_match_other = '';
+                }
+                // --- END CHANGE ---
+
+                // Add problem resolution fields explicitly (in case not picked up by FormData)
+                reviewData.problem_resolved = document.getElementById('problem_resolved').value;
+                reviewData.problem_resolved_in_place = document.getElementById('problem_resolved_in_place').value;
+                reviewData.resolution_category = document.getElementById('resolution_category').value;
+                
+                // Submit to Google Sheets
+                const success = await completeVideoReview(reviewData);
+                if (success) {
+                    // Show custom success popup instead of browser alert
+                    showSuccessPopup('Thank you! Your review has been submitted successfully. 🎉<br><br>Loading next video...');
+                    
+                    // Store email before reset
+                    const userEmail = document.getElementById('advisorName').value;
+                    this.reset();
+                    currentVideo = null;
+                    updateProgress();
+                    
+                    // Update dashboard immediately with the review data
+                    updateDashboardWithReview(reviewData);
+                    
+                    // Restore email so next video loads, then reset and load
+                    if (userEmail) {
+                        document.getElementById('advisorName').value = userEmail;
+                        try {
+                            resetVideoPlayer();
+                        } catch (e) {
+                            console.log('Error resetting video player:', e);
+                        }
+                        
+                        // Show loading for next video
+                        showLoading('Loading next video...');
+                        
+                        // Load next video
+                        try {
+                            await loadNextVideo(false);
+                        } catch (e) {
+                            console.error('Error loading next video:', e);
+                        }
+                        
+                        hideLoading();
+                    } else {
+                        try {
+                            resetVideoPlayer();
+                        } catch (e) {
+                            console.log('Error resetting video player:', e);
+                        }
+                    }
+                    
+                    // Prefetch next video after current one loads
+                    setTimeout(() => {
+                        if (userEmail) {
+                            prefetchNextVideo();
+                        }
+                    }, 1500);
+                    
+                    // Load dashboard stats in background (without showing loading popup)
+                    setTimeout(() => {
+                        loadRealDashboardStats(false);
+                    }, 2000);
+                }
+            });
+
+            // --- Progress Bar Logic ---
+            const progressFields = [
+                document.getElementById('timelineValidation'),
+                document.getElementById('stepRefinement'),
+                document.getElementById('problem_resolved'),
+                document.getElementById('problem_resolved_in_place'),
+                document.getElementById('resolution_category')
+            ];
+
+            progressFields.forEach(field => {
+                if (field) {
+                    field.addEventListener('input', updateProgress);
+                    field.addEventListener('change', updateProgress);
+                }
+            });
+            
+            // Add progress tracking for tools used checkboxes
+            const toolsCheckboxes = document.querySelectorAll('input[name="tools_used"]');
+            toolsCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateProgress);
+            });
+            
+            // Add progress tracking for intent validation
+            const aiIntentCheckbox = document.getElementById('ai_intent_correct');
+            if (aiIntentCheckbox) {
+                aiIntentCheckbox.addEventListener('change', updateProgress);
+            }
+
+            // --- START CHANGE ---
+            // Event listener for the "Other" checkbox
+            const otherCheckbox = document.getElementById('tool_other_checkbox');
+            const otherTextInput = document.getElementById('tool_other_text');
+            if (otherCheckbox) {
+                otherCheckbox.addEventListener('change', function() {
+                    otherTextInput.style.display = this.checked ? 'block' : 'none';
+                    if (!this.checked) {
+                        otherTextInput.value = ''; // Clear text when unchecked
+                    }
+                });
+            }
+            // --- END CHANGE ---
+
+            // --- START CHANGE ---
+            // Make the entire checkbox item div clickable
+            const checkboxItems = document.querySelectorAll('.checkbox-item');
+            checkboxItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Prevent double-toggling if the input itself is clicked
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = this.querySelector('input[type="checkbox"]');
+                        if (checkbox) {
+                            checkbox.checked = !checkbox.checked;
+                            // Manually trigger the 'change' event for the 'Other' checkbox logic
+                            if (checkbox.id === 'tool_other_checkbox') {
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        }
+                    }
+                });
+            });
+            // --- END CHANGE ---
+            
+            // Initial call to set progress
+            updateProgress();
+            
+            // Add event listener for intent "Other" option
+            document.addEventListener('change', function(e) {
+                if (e.target.name === 'intent_match') {
+                    const otherTextInput = document.getElementById('intent_other_text');
+                    if (e.target.value === 'Other') {
+                        otherTextInput.style.display = 'block';
+                    } else {
+                        otherTextInput.style.display = 'none';
+                        otherTextInput.value = ''; // Clear text when other option selected
+                    }
+                    // Update progress when intent radio buttons change
+                    updateProgress();
+                }
+                
+                // Handle AI intent correct checkbox
+                if (e.target.id === 'ai_intent_correct') {
+                    const matchRadios = document.querySelectorAll('input[name="intent_match"]');
+                    const matchesContainer = document.getElementById('intent-matches-container');
+                    const otherSection = document.getElementById('intent-other-section');
+                    
+                    if (e.target.checked) {
+                        // Disable all radio buttons and clear selections
+                        matchRadios.forEach(radio => {
+                            radio.disabled = true;
+                            radio.checked = false;
+                        });
+                        // Hide the text input if it was shown
+                        const otherTextInput = document.getElementById('intent_other_text');
+                        if (otherTextInput) {
+                            otherTextInput.style.display = 'none';
+                            otherTextInput.value = '';
+                        }
+                        // Dim the matches section
+                        if (matchesContainer) matchesContainer.style.opacity = '0.5';
+                        if (otherSection) otherSection.style.opacity = '0.5';
+                    } else {
+                        // Re-enable all radio buttons
+                        matchRadios.forEach(radio => {
+                            radio.disabled = false;
+                        });
+                        // Restore opacity
+                        if (matchesContainer) matchesContainer.style.opacity = '1';
+                        if (otherSection) otherSection.style.opacity = '1';
+                    }
+                    // Update progress when AI intent checkbox changes
+                    updateProgress();
+                }
+            });
+        });
+        
+        // Modified loadNextVideo to use prefetch
+        async function loadNextVideo(showLoadingPopup = true) {
+            if (!loggedInEmail) {
+                alert('Please enter your email and log in to load a video.');
+                return;
+            }
+            // Ensure email is persisted in the hidden field
+            document.getElementById('advisorName').value = loggedInEmail;
+            const userEmail = loggedInEmail;
+            
+            // Show spinner in video embed area
+            const videoContainer = document.getElementById('videoContainer');
+            if (videoContainer) {
+                videoContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
+                        <div class="spinner" style="border: 6px solid #f3f3f3; border-top: 6px solid #667eea; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; margin-bottom: 18px;"></div>
+                        <div style="font-size: 18px; color: #495057;">Processing video...</div>
+                    </div>
+                `;
+            }
+
+            try {
+                if (showLoadingPopup) {
+                    showLoading('Loading next video...');
+                }
+                let videoToLoad = null;
+                if (prefetchedVideo) {
+                    videoToLoad = prefetchedVideo;
+                    prefetchedVideo = null;
+                } else {
+                    // Fallback: fetch directly if not prefetched
+                    const result = await submitFormRequest('getNextVideo', {
+                        userEmail: userEmail,
+                        filterDuration: 'true',
+                        tabName: SHEET_TAB_NAME
+                    });
+                    if (result.success) {
+                        videoToLoad = result.video;
+                    } else {
+                        if (showLoadingPopup) {
+                            hideLoading();
+                        }
+                        if (result.error === 'VIDEO_TOO_LONG') {
+                            const skipLong = confirm('Current video is longer than 1 hour. Skip to next video?');
+                            if (skipLong) {
+                                loadNextVideo(showLoadingPopup); // Try again
+                            } else {
+                                alert('Please load a different video or contact support');
+                            }
+                        } else {
+                            alert(result.error || 'No available videos found');
+                        }
+                        return;
+                    }
+                }
+                currentVideo = videoToLoad;
+                console.log('Received video object:', videoToLoad);
+                console.log('AI Intent:', videoToLoad.aiIntent);
+                console.log('Matches:', videoToLoad.matches);
+                displayVideo(videoToLoad);
+                updateVideoInfo(videoToLoad);
+                if (showLoadingPopup) {
+                    hideLoading();
+                }
+                // Prefetch the next video in the background
+                prefetchNextVideo();
+            } catch (error) {
+                if (showLoadingPopup) {
+                    hideLoading();
+                }
+                console.error('Error loading video:', error);
+                alert('Error loading video: ' + error.message);
+            }
+        }
+        
+        // Display video in the player
+        function displayVideo(video) {
+            const videoContainer = document.getElementById('videoContainer');
+            const html5Player = document.getElementById('html5VideoPlayer');
+            const videoDetails = document.getElementById('videoDetails');
+
+            // Hide placeholder
+            videoContainer.style.display = 'none';
+
+            // Set video source
+            let videoUrl = video.recordingUrl || video.driveUrl;
+            let isDrive = false;
+            let fileId = null;
+            let ticketId = video.ticketId || video.ticket_id || video.TicketID || '';
+            let ticketLinkHtml = ticketId ? `<a href="https://shopify.zendesk.com/agent/tickets/${ticketId}" target="_blank" rel="noopener noreferrer">${ticketId}</a>` : 'N/A';
+            const merchantIssue = video.merchantIssue || video.merchant_issue || '-';
+
+            if (videoUrl && videoUrl.includes('drive.google.com')) {
+                // Extract file ID
+                const fileIdMatch = videoUrl.match(/[-\w]{25,}/);
+                if (fileIdMatch) {
+                    fileId = fileIdMatch[0];
+                    isDrive = true;
+                }
+            }
+
+            const merchantIssueHtml = `<hr style='margin:8px 0 8px 0;'><strong>Merchant Issue:</strong> <span style='color:#2a2a2a;'>${merchantIssue}</span>`;
+
+            if (isDrive) {
+                // Use iframe for Google Drive preview, with CSS trick to hide pop-out button
+                html5Player.innerHTML = `
+                    <div style="position: relative; width: 100%; height: 400px; overflow: hidden; border-radius: 8px;" oncontextmenu="return false;">
+                        <iframe src="https://drive.google.com/file/d/${fileId}/preview"
+                            width="100%" height="440px" allow="autoplay"
+                            style="border:none; position: absolute; top: -40px; left: 0;">
+                        </iframe>
+                    </div>
+                    <div id="videoInfo" style="background: #e9ecef; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong>Video Details:</strong><br>
+                        Ticket: ${ticketLinkHtml}<br>
+                        Store: ${video.storeUrl}<br>
+                        Advisor: ${video.advisorEmail || 'N/A'}<br>
+                        ${merchantIssueHtml}
+                    </div>
+                `;
+            } else {
+                // Use HTML5 video player for direct links, disabling download and right-click
+                html5Player.innerHTML = `
+                    <video id="mainVideo"
+                        width="100%"
+                        height="400"
+                        controls
+                        controlsList="nodownload"
+                        oncontextmenu="return false;"
+                        preload="metadata"
+                        style="border-radius: 8px; background: #000;">
+                        <source id="videoSource" src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div id="videoInfo" style="background: #e9ecef; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong>Video Details:</strong><br>
+                        Ticket: ${ticketLinkHtml}<br>
+                        Store: ${video.storeUrl}<br>
+                        Advisor: ${video.advisorEmail || 'N/A'}<br>
+                        ${merchantIssueHtml}
+                    </div>
+                `;
+            }
+
+            html5Player.style.display = 'block';
+            displayInteractionTimeline(video.interactionTimeline);
+            
+            // Display AI Intent and Matches
+            const aiIntentDisplay = document.getElementById('ai-intent-display');
+            const matchesContainer = document.getElementById('intent-matches-container');
+
+            if(aiIntentDisplay && matchesContainer) {
+                aiIntentDisplay.textContent = video.aiIntent || 'No intent identified.';
+                
+                matchesContainer.innerHTML = ''; // Clear previous matches
+                if (video.matches) {
+                    // Convert matches object to array and filter out empty values
+                    const matchesArray = Object.values(video.matches).filter(match => match && match.trim() !== '');
+                    
+                    // Shuffle the matches array to randomize order
+                    const shuffledMatches = matchesArray.sort(() => Math.random() - 0.5);
+                    
+                    shuffledMatches.forEach((match, index) => {
+                        const matchId = `match_${index}`;
+                        const radioItem = document.createElement('div');
+                        radioItem.className = 'checkbox-item'; // Re-using style for consistency
+                        
+                        const radioInput = document.createElement('input');
+                        radioInput.type = 'radio';
+                        radioInput.id = matchId;
+                        radioInput.name = 'intent_match';
+                        radioInput.value = match;
+                        
+                        const radioLabel = document.createElement('label');
+                        radioLabel.htmlFor = matchId;
+                        radioLabel.textContent = match;
+
+                        radioItem.appendChild(radioInput);
+                        radioItem.appendChild(radioLabel);
+                        matchesContainer.appendChild(radioItem);
+                    });
+                }
+                
+                // Show the "Other" option after matches are loaded
+                const otherSection = document.getElementById('intent-other-section');
+                if (otherSection) {
+                    otherSection.style.display = 'flex';
+                }
+                
+                // Reset intent validation section for new video
+                resetIntentValidationSection();
+            }
+            
+            // Comprehensive reset for new video (forms, scroll positions, etc.)
+            resetForNewVideo();
+        }
+        
+        // Update video ID field
+        function updateVideoInfo(video) {
+            console.log('Loaded video object:', video);
+            // Merchant Issue (Q) - add <hr>, bold title, deep grey text
+            const merchantIssue = video.merchantIssue || video.merchant_issue || '-';
+            const merchantIssueHtml = `<hr style='margin:8px 0 8px 0;'><strong>Merchant Issue:</strong> <span style='color:#2a2a2a;'>${merchantIssue}</span>`;
+            const videoDetailsEl = document.getElementById('videoDetails');
+            if (videoDetailsEl) {
+                videoDetailsEl.innerHTML = merchantIssueHtml;
+            }
+            // Hide the 'Video Controls & Notes:' label robustly
+            document.querySelectorAll('label').forEach(label => {
+                if (label.textContent && label.textContent.trim().startsWith('Video Controls & Notes')) {
+                    label.style.display = 'none';
+                }
+            });
+            // Set problem resolution fields
+            if (document.getElementById('problem_resolved')) {
+                document.getElementById('problem_resolved').value = video.problem_resolved || '';
+            }
+            if (document.getElementById('problem_resolved_in_place')) {
+                document.getElementById('problem_resolved_in_place').value = video.problem_resolved_in_place || '';
+            }
+            if (document.getElementById('resolution_category')) {
+                document.getElementById('resolution_category').value = video.resolution_category || '';
+            }
+        }
+        
+        // Reset video player to placeholder state
+        function resetVideoPlayer() {
+            const videoContainer = document.getElementById('videoContainer');
+            const html5Player = document.getElementById('html5VideoPlayer');
+            const video = document.getElementById('mainVideo');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            
+            // Show placeholder, hide video player
+            if (videoContainer) {
+                videoContainer.style.display = 'block';
+            }
+            if (html5Player) {
+                html5Player.style.display = 'none';
+            }
+            
+            // Reset video only if it exists (HTML5 video, not iframe)
+            if (video) {
+                try {
+                    video.pause();
+                    video.currentTime = 0;
+                } catch (e) {
+                    console.log('Could not reset video (might be iframe):', e);
+                }
+            }
+            
+            // Reset play button if it exists
+            if (playPauseBtn) {
+                playPauseBtn.innerHTML = '▶️ Play';
+            }
+            
+            // Update placeholder text
+            if (videoContainer) {
+                const placeholderTitle = videoContainer.querySelector('h4');
+                const placeholderText = videoContainer.querySelector('p');
+                
+                if (placeholderTitle) placeholderTitle.textContent = 'Video Review Complete';
+                if (placeholderText) placeholderText.textContent = 'Click "Load Next Video" to continue reviewing';
+            }
+            
+            // Clear the interaction timeline
+            const timelineContainer = document.getElementById('interactionTimeline');
+            if (timelineContainer) {
+                timelineContainer.innerHTML = `
+                    <p style="color: #666; text-align: center; margin: 0;">Load a video to see the interaction timeline</p>
+                `;
+            }
+            
+            // Reset AI intent and matches display
+            const aiIntentDisplay = document.getElementById('ai-intent-display');
+            const matchesContainer = document.getElementById('intent-matches-container');
+            const otherSection = document.getElementById('intent-other-section');
+            
+            if (aiIntentDisplay) {
+                aiIntentDisplay.textContent = 'Loading...';
+            }
+            if (matchesContainer) {
+                matchesContainer.innerHTML = '<p style="color: #6c757d;">Loading matches...</p>';
+            }
+            if (otherSection) {
+                otherSection.style.display = 'none';
+            }
+        }
+        
+        // Complete video review
+        async function completeVideoReview(reviewData) {
+            if (!currentVideo) {
+                alert('No video is currently loaded');
+                return false;
+            }
+            
+            try {
+                showLoading('Submitting review...');
+                
+                const result = await submitFormRequest('completeVideo', {
+                    ticketId: currentVideo.ticketId || currentVideo.ticket_id,
+                    reviewData: JSON.stringify(reviewData),
+                    tabName: SHEET_TAB_NAME
+                });
+                
+                if (result.success) {
+                    hideLoading();
+                    return true;
+                } else {
+                    hideLoading();
+                    alert('Error completing review: ' + (result.error || 'Please try again'));
+                    return false;
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Error completing review:', error);
+                alert('Error submitting review: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Load dashboard stats from Google Sheets
+        async function loadRealDashboardStats(showLoadingPopup = true) {
+            try {
+                if (showLoadingPopup) {
+                    showLoading('Loading dashboard data...');
+                }
+                
+                const result = await submitFormRequest('getStats', {
+                    tabName: SHEET_TAB_NAME
+                });
+                
+                if (result.success) {
+                    updateDashboardWithRealStats(result.stats);
+                    
+                    // Load additional dashboard data
+                    await loadDetailedDashboardData();
+                }
+                
+                if (showLoadingPopup) {
+                    hideLoading();
+                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                if (showLoadingPopup) {
+                    hideLoading();
+                }
+            }
+        }
+        
+        // Update dashboard with real statistics
+        function updateDashboardWithRealStats(stats) {
+            if (!stats) {
+                console.error('No stats provided to updateDashboardWithRealStats');
+                return;
+            }
+            
+            console.log('Updating dashboard with stats:', stats);
+            
+            // Update basic stats with null checks
+            if (document.getElementById('totalVideos')) {
+                document.getElementById('totalVideos').textContent = stats.totalVideos || 0;
+            }
+            if (document.getElementById('reviewedVideos')) {
+                document.getElementById('reviewedVideos').textContent = stats.completed || 0;
+            }
+            
+            // Update completion percentage
+            const completionElement = document.querySelector('.stat-change.stat-info');
+            if (completionElement && stats.completionRate !== undefined) {
+                completionElement.textContent = stats.completionRate + '% completion';
+            }
+            
+            // Update unassigned videos stat
+            if (document.getElementById('videosUnassigned')) {
+                document.getElementById('videosUnassigned').textContent = stats.available || stats.unassigned || 0;
+            }
+            
+            // Update in progress videos stat
+            if (document.getElementById('videosInProgress')) {
+                document.getElementById('videosInProgress').textContent = stats.taken || stats.inProgress || 0;
+            }
+        }
+
+        // Load detailed dashboard data including charts and advisor stats
+        async function loadDetailedDashboardData() {
+            try {
+                console.log('🔄 Loading detailed dashboard data...');
+                const result = await submitFormRequest('getDashboardData', {
+                    tabName: SHEET_TAB_NAME
+                });
+                
+                console.log('📊 Dashboard data result:', result);
+                
+                if (result.success && result.data) {
+                    const data = result.data;
+                    console.log('✅ Dashboard data received:', data);
+                    
+                    // Update charts with real data
+                    if (data.chartData) {
+                        console.log('📈 Updating charts with:', data.chartData);
+                        updateChartsWithRealData(data.chartData);
+                    }
+                    
+                    // Update advisor table
+                    if (data.advisorStats) {
+                        console.log('👥 Updating advisor table with:', data.advisorStats);
+                        updateAdvisorTable(data.advisorStats);
+                    }
+                    
+                    // Update insights
+                    if (data.insights) {
+                        console.log('💡 Updating insights with:', data.insights);
+                        // Log each insight individually to see the structure
+                        data.insights.forEach((insight, index) => {
+                            console.log(`Insight ${index + 1}:`, insight);
+                        });
+                        updateInsights(data.insights);
+                    }
+                } else {
+                    console.error('❌ Dashboard data request failed:', result);
+                }
+            } catch (error) {
+                console.error('Error loading detailed dashboard data:', error);
+                // Fall back to sample data if real data fails
+                console.log('🔄 Falling back to sample charts...');
+                initializeCharts();
+            }
+        }
+        
+        // Update charts with real data
+        function updateChartsWithRealData(chartData) {
+            // Progress Chart
+            const progressCtx = document.getElementById('progressChart');
+            if (progressCtx && chartData.progressData) {
+                // Clear any existing chart
+                Chart.getChart(progressCtx)?.destroy();
+                
+                new Chart(progressCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: chartData.progressData.labels,
+                        datasets: [{
+                            label: 'Videos Reviewed',
+                            data: chartData.progressData.values,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            y: { beginAtZero: true },
+                            x: { 
+                                ticks: { maxRotation: 45 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Resolution Category Distribution
+            const accuracyCtx = document.getElementById('accuracyChart');
+            if (accuracyCtx && chartData.resolutionData) {
+                // Clear any existing chart
+                Chart.getChart(accuracyCtx)?.destroy();
+                
+                new Chart(accuracyCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.resolutionData.labels,
+                        datasets: [{
+                            data: chartData.resolutionData.values,
+                            backgroundColor: ['#28a745', '#20c997', '#ffc107', '#fd7e14', '#dc3545', '#6f42c1', '#17a2b8']
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // Tools Usage Chart
+            const stepsCtx = document.getElementById('missingStepsChart');
+            if (stepsCtx && chartData.toolsData) {
+                // Clear any existing chart
+                Chart.getChart(stepsCtx)?.destroy();
+                
+                new Chart(stepsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.toolsData.labels,
+                        datasets: [{
+                            label: 'Usage Count',
+                            data: chartData.toolsData.values,
+                            backgroundColor: '#667eea'
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            // Intent Validation Accuracy
+            const toolsCtx = document.getElementById('toolsChart');
+            if (toolsCtx && chartData.intentData) {
+                // Clear any existing chart
+                Chart.getChart(toolsCtx)?.destroy();
+                
+                new Chart(toolsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.intentData.labels,
+                        datasets: [{
+                            label: 'Percentage',
+                            data: chartData.intentData.values,
+                            backgroundColor: ['#28a745', '#20c997', '#ffc107', '#17a2b8']
+                        }]
+                    },
+                    options: { 
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true, max: 100 } }
+                    }
+                });
+            }
+        }
+        
+        // Update advisor table with real data
+        function updateAdvisorTable(advisorStats) {
+            const tableBody = document.getElementById('advisorTable');
+            if (!tableBody || !advisorStats || advisorStats.length === 0) {
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            
+            advisorStats.forEach(advisor => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${advisor.name || 'Unknown'}</td>
+                    <td>${advisor.reviewCount || 0}</td>
+                    <td>${advisor.mostUsedTool || 'No tools used yet'}</td>
+                    <td>${advisor.lastReview || 'Never'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Update insights with real data
+        function updateInsights(insights) {
+            const insightsGrid = document.querySelector('.insights-grid');
+            if (!insightsGrid || !insights || insights.length === 0) {
+                return;
+            }
+            
+            console.log('🔧 updateInsights called with:', insights);
+            
+            // Clear existing insights
+            insightsGrid.innerHTML = '';
+            
+            // Separate insights by width
+            const fullWidthInsights = insights.filter(insight => !insight.width || insight.width !== '1/3');
+            const thirdWidthInsights = insights.filter(insight => insight.width === '1/3');
+            
+            console.log('📏 Full width insights:', fullWidthInsights);
+            console.log('📏 1/3 width insights:', thirdWidthInsights);
+            
+            // Add full-width insights first
+            fullWidthInsights.forEach(insight => {
+                const insightCard = document.createElement('div');
+                insightCard.className = 'insight-card';
+                insightCard.innerHTML = `
+                    <div class="insight-title">${insight.icon || '📊'} ${insight.title}</div>
+                    <div class="insight-content">${insight.content}</div>
+                `;
+                insightsGrid.appendChild(insightCard);
+            });
+            
+            // Add 1/3 width insights in a special container
+            if (thirdWidthInsights.length > 0) {
+                console.log('🎯 Creating 1/3 width container for', thirdWidthInsights.length, 'insights');
+                const thirdWidthContainer = document.createElement('div');
+                thirdWidthContainer.style.cssText = `
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    width: 100%;
+                    grid-column: 1 / -1;
+                `;
+                
+                thirdWidthInsights.forEach(insight => {
+                    const insightCard = document.createElement('div');
+                    insightCard.className = 'insight-card';
+                    insightCard.style.margin = '0'; // Remove default margin since we're using grid gap
+                    insightCard.innerHTML = `
+                        <div class="insight-title">${insight.icon || '📊'} ${insight.title}</div>
+                        <div class="insight-content">${insight.content}</div>
+                    `;
+                    thirdWidthContainer.appendChild(insightCard);
+                });
+                
+                insightsGrid.appendChild(thirdWidthContainer);
+            } else {
+                console.log('⚠️ No 1/3 width insights found');
+            }
+        }
+
+        // Loading indicator functions
+        function showLoading(message) {
+            let loader = document.getElementById('loadingIndicator');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'loadingIndicator';
+                loader.style.cssText = `
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background: rgba(0,0,0,0.8); color: white; padding: 20px;
+                    border-radius: 10px; z-index: 1000; text-align: center;
+                `;
+                document.body.appendChild(loader);
+            }
+            loader.innerHTML = `
+                <div style="font-size: 16px; margin-bottom: 10px;">${message}</div>
+                <div style="font-size: 24px;">⏳</div>
+            `;
+            loader.style.display = 'block';
+        }
+        
+        function hideLoading() {
+            const loader = document.getElementById('loadingIndicator');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Custom success popup function
+        function showSuccessPopup(message) {
+            let popup = document.getElementById('successPopup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = 'successPopup';
+                popup.style.cssText = `
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                    color: white; padding: 30px; border-radius: 15px; z-index: 1001;
+                    text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    max-width: 400px; min-width: 300px;
+                `;
+                document.body.appendChild(popup);
+            }
+            popup.innerHTML = `
+                <div style="font-size: 18px; line-height: 1.4; margin-bottom: 20px;">${message}</div>
+                <div style="font-size: 32px; margin-bottom: 15px;">✅</div>
+                <button onclick="hideSuccessPopup()" style="
+                    background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);
+                    padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+                   onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    Continue
+                </button>
+            `;
+            popup.style.display = 'block';
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                hideSuccessPopup();
+            }, 3000);
+        }
+        
+        function hideSuccessPopup() {
+            const popup = document.getElementById('successPopup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            const targetTab = document.getElementById(tabName + '-tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Add active class to correct button
+            const targetButton = Array.from(tabButtons).find(button => 
+                button.textContent.toLowerCase().includes(tabName.toLowerCase())
+            );
+            if (targetButton) {
+                targetButton.classList.add('active');
+            }
+            
+            // Initialize charts and load real stats when dashboard tab is shown
+            if (tabName === 'dashboard') {
+                setTimeout(() => {
+                    loadRealDashboardStats();
+                    initializeCharts();
+                }, 100);
+            }
+            
+            // Load video when review tab is shown
+            if (tabName === 'review') {
+                setTimeout(() => {
+                    if (!currentVideo && document.getElementById('advisorName').value) {
+                        loadNextVideo();
+                    }
+                }, 500);
+            }
+        }
+
+        // Review tool progress tracking
+        function updateProgress() {
+            const fields = [
+                // Question 1: Timeline Review
+                document.getElementById('timelineValidation'),
+                document.getElementById('stepRefinement'),
+                
+                // Question 2: Resolution Details
+                document.getElementById('problem_resolved'),
+                document.getElementById('problem_resolved_in_place'),
+                document.getElementById('resolution_category'),
+                
+                // Question 3: Tools Used (check if any tools are selected)
+                'tools_used_section',
+                
+                // Question 4: Intent Validation (check if AI checkbox or any radio is selected)
+                'intent_validation_section'
+            ];
+            
+            let completedFields = 0;
+            const totalFields = fields.length;
+            
+            fields.forEach(field => {
+                if (typeof field === 'string') {
+                    // Handle special sections
+                    if (field === 'tools_used_section') {
+                        // Check if any tools are selected
+                        const toolsSelected = document.querySelectorAll('input[name="tools_used"]:checked');
+                        if (toolsSelected.length > 0) {
+                            completedFields++;
+                        }
+                    } else if (field === 'intent_validation_section') {
+                        // Check if AI intent checkbox is checked OR any radio button is selected
+                        const aiCorrectCheckbox = document.getElementById('ai_intent_correct');
+                        const selectedMatch = document.querySelector('input[name="intent_match"]:checked');
+                        
+                        if ((aiCorrectCheckbox && aiCorrectCheckbox.checked) || selectedMatch) {
+                            completedFields++;
+                        }
+                    }
+                } else {
+                    // Handle regular form fields
+                    if (field && field.value && field.value.trim() !== '') {
+                        completedFields++;
+                    }
+                }
+            });
+            
+            const percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+            }
+            if (progressText) {
+                progressText.textContent = percentage + '% Complete';
+            }
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            // Destroy existing charts if they exist
+            const progressCtx = document.getElementById('progressChart');
+            const accuracyCtxDestroy = document.getElementById('accuracyChart');
+            const stepsCtxDestroy = document.getElementById('missingStepsChart');
+            const toolsCtxDestroy = document.getElementById('toolsChart');
+            
+            // Destroy existing chart instances
+            if (progressCtx) {
+                const existingChart = Chart.getChart(progressCtx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+            }
+            if (accuracyCtxDestroy) {
+                const existingChart = Chart.getChart(accuracyCtxDestroy);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+            }
+            if (stepsCtxDestroy) {
+                const existingChart = Chart.getChart(stepsCtxDestroy);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+            }
+            if (toolsCtxDestroy) {
+                const existingChart = Chart.getChart(toolsCtxDestroy);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+            }
+            
+            // Progress Chart
+            if (progressCtx) {
+                // Generate last 7 days labels
+                const today = new Date();
+                const dailyLabels = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    dailyLabels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+                }
+                
+                new Chart(progressCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: dailyLabels,
+                        datasets: [{
+                            label: 'Videos Reviewed',
+                            data: [0, 0, 0, 0, 0, 0, 0],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            y: { beginAtZero: true },
+                            x: { 
+                                ticks: { maxRotation: 45 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Accuracy Distribution Chart
+            const accuracyCtx = document.getElementById('accuracyChart');
+            if (accuracyCtx) {
+                new Chart(accuracyCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Resolved In Place With Action', 'Resolved In Place With Instruction', 'Follow-up Required', 'Third Party Involvement', 'Escalated'],
+                        datasets: [{
+                            data: [0, 0, 0, 0, 0],
+                            backgroundColor: ['#28a745', '#20c997', '#ffc107', '#fd7e14', '#dc3545']
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // Missing Steps Chart
+            const stepsCtx = document.getElementById('missingStepsChart');
+            if (stepsCtx) {
+                new Chart(stepsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Reddit', 'Community Docs', 'YouTube', 'Google', 'Guru', 'Slack', 'Librechat', 'Perplexity'],
+                        datasets: [{
+                            label: 'Usage Count',
+                            data: [0, 0, 0, 0, 0, 0, 0, 0],
+                            backgroundColor: '#667eea'
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            // Tools Chart
+            const toolsCtx = document.getElementById('toolsChart');
+            if (toolsCtx) {
+                new Chart(toolsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['AI Intent Accuracy', 'Manual Corrections', 'Partial Matches', 'No Data'],
+                        datasets: [{
+                            label: 'Percentage',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: ['#28a745', '#20c997', '#ffc107', '#17a2b8']
+                        }]
+                    },
+                    options: { 
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true, max: 100 } }
+                    }
+                });
+            }
+        }
+
+        // Video control functions
+        function playPause() {
+            const video = document.getElementById('mainVideo');
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (video.paused) {
+                video.play();
+                btn.innerHTML = '⏸️ Pause';
+            } else {
+                video.pause();
+                btn.innerHTML = '▶️ Play';
+            }
+        }
+        
+        function skipVideo(seconds) {
+            const video = document.getElementById('mainVideo');
+            video.currentTime += seconds;
+        }
+        
+        function addTimestampNote() {
+            const video = document.getElementById('mainVideo');
+            const currentTime = Math.floor(video.currentTime);
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const note = prompt(`Add a note at ${timestamp}:`);
+            if (note) {
+                // Store timestamp notes (you can enhance this to save to form)
+                const notesField = document.getElementById('timelineValidation');
+                if (notesField) {
+                    const currentNotes = notesField.value;
+                    const newNote = `[${timestamp}] ${note}`;
+                    notesField.value = currentNotes ? `${currentNotes}\n${newNote}` : newNote;
+                }
+                alert(`Note added at ${timestamp}: ${note}`);
+            }
+        }
+
+        // Simplified form submission to bypass CORS
+        function submitFormRequest(action, data) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'formCallback_' + Date.now();
+                
+                // Set up cleanup function
+                const cleanup = () => {
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                    }
+                    const existingScript = document.querySelector(`script[src*="${callbackName}"]`);
+                    if (existingScript && existingScript.parentNode) {
+                        existingScript.parentNode.removeChild(existingScript);
+                    }
+                };
+                
+                window[callbackName] = function(result) {
+                    console.log('Received response:', result);
+                    cleanup();
+                    resolve(result);
+                };
+                
+                // Build URL with parameters
+                let url = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action);
+                url += '&callback=' + encodeURIComponent(callbackName);
+                
+                for (const key in data) {
+                    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+                }
+                
+                console.log('Making request to:', url);
+                console.log('Data being sent:', data);
+                
+                // Use JSONP-style script tag (simpler than popup)
+                const script = document.createElement('script');
+                script.src = url;
+                script.onerror = function(error) {
+                    console.error('Script loading failed:', error);
+                    console.error('Failed URL:', url);
+                    cleanup();
+                    reject(new Error('Request failed - check console for URL and error details'));
+                };
+                
+                script.onload = function() {
+                    console.log('Script loaded successfully');
+                };
+                
+                document.body.appendChild(script);
+                
+                // Timeout cleanup
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        console.error('Request timed out after 30 seconds');
+                        cleanup();
+                        reject(new Error('Request timed out'));
+                    }
+                }, 30000); // Increased from 15 to 30 seconds
+            });
+        }
+
+        // Restore displayInteractionTimeline and ensure displayVideo calls it
+        function displayInteractionTimeline(timeline) {
+            const timelineContainer = document.getElementById('interactionTimeline');
+            if (!timeline || timeline === '') {
+                timelineContainer.innerHTML = `
+                    <p style="color: #666; text-align: center; margin: 0;">
+                        No interaction timeline available for this video
+                    </p>
+                `;
+                return;
+            }
+            let timelineData = timeline;
+            if (typeof timeline === 'string') {
+                try {
+                    timelineData = JSON.parse(timeline);
+                } catch (e) {
+                    // --- FINAL ATTEMPT ---
+                    let styledHtml = '<div style="background: white; border: 1px solid #dee2e6; padding: 10px; border-radius: 6px;">';
+                    const trimmedTimeline = timeline.trim();
+                    
+                    // Replace the start of each line with a unique delimiter, then split by it.
+                    const delimiter = '|||';
+                    // The 'g' flag ensures we replace all occurrences
+                    const processedString = trimmedTimeline.replace(/(\d+\. 20)/g, `${delimiter}$1`); 
+                    const lines = processedString.split(delimiter).filter(line => line.trim() !== '');
+
+                    if (lines.length > 0) {
+                        lines.forEach((line, index) => {
+                            const bgColor = index % 2 === 0 ? 'transparent' : '#e7f5fe'; // Light blue for alternating lines
+                            styledHtml += `<div style="white-space: pre-wrap; font-family: monospace; font-size: 14px; line-height: 1.6; background-color: ${bgColor}; padding: 4px 8px; border-radius: 4px;">${line.trim()}</div>`;
+                        });
+                    } else {
+                        // Fallback for single-line text
+                        styledHtml += `<div style="white-space: pre-wrap; font-family: monospace; font-size: 14px; line-height: 1.6;">${trimmedTimeline}</div>`;
+                    }
+
+                    styledHtml += '</div>';
+                    timelineContainer.innerHTML = styledHtml;
+                    return;
+                }
+            }
+            if (Array.isArray(timelineData)) {
+                let html = '<ul class="timeline-list">';
+                timelineData.forEach((item, index) => {
+                    html += `<li class="timeline-step">
+                        <span class="timeline-badge">${index + 1}</span>
+                        <span style="font-weight: 600; color: #333;">${item.event_type || 'Action'}</span>
+                        <span class="timeline-meta">${item.event_time ? new Date(item.event_time).toLocaleTimeString() : ''}</span>`;
+                    if (item.click_label) {
+                        html += `<span class="timeline-action">Action: ${item.click_label}</span>`;
+                    }
+                    if (item.pageview_url) {
+                        html += `<span class="timeline-page">Page: ${item.pageview_url}</span>`;
+                    }
+                    if (item.click_target) {
+                        html += `<span class="timeline-target">Target: ${item.click_target}</span>`;
+                    }  
+                    html += '</li>';
+                });
+                html += '</ul>';
+                timelineContainer.innerHTML = html;
+            } else {
+                timelineContainer.innerHTML = `
+                    <div style="background: #f1f1f1; padding: 15px; border-radius: 6px;">
+                        <strong style="display: block; margin-bottom: 8px; font-family: sans-serif; color: #555;">Formatted JSON Timeline</strong>
+                        <div style="white-space: pre-wrap; font-family: monospace; font-size: 14px; line-height: 1.5;">${JSON.stringify(timelineData, null, 2)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Restore prefetchNextVideo function
+        async function prefetchNextVideo() {
+            const userEmail = loggedInEmail;
+            if (!userEmail) {
+                prefetchedVideo = null;
+                return;
+            }
+            
+            try {
+                const result = await submitFormRequest('getNextVideo', {
+                    userEmail: userEmail,
+                    filterDuration: 'true',
+                    tabName: SHEET_TAB_NAME
+                });
+                if (result.success) {
+                    prefetchedVideo = result.video;
+                } else {
+                    prefetchedVideo = null;
+                }
+            } catch (e) {
+                prefetchedVideo = null;
+            }
+        }   
+
+        function showTabAndScroll(tabName, anchorId) {
+            showTab(tabName);
+            // A short delay ensures the tab is visible before we try to scroll to the anchor.
+            setTimeout(() => {
+                const element = document.getElementById(anchorId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 150);
+        }
+
+
+
+        // Update dashboard with review data
+        function updateDashboardWithReview(reviewData) {
+            // Update the total reviewed videos count
+            const currentReviewed = parseInt(document.getElementById('reviewedVideos').textContent);
+            document.getElementById('reviewedVideos').textContent = currentReviewed + 1;
+            
+            // Update completion percentage
+            const totalVideos = parseInt(document.getElementById('totalVideos').textContent);
+            const newPercentage = Math.round(((currentReviewed + 1) / totalVideos) * 100);
+            const completionElement = document.querySelector('.stat-change.stat-info');
+            if (completionElement) {
+                completionElement.textContent = newPercentage + '% completion';
+            }
+            
+            console.log('Dashboard updated with review:', reviewData);
+        }
+
+        // Reset intent validation section for new video
+        function resetIntentValidationSection() {
+            // Reset AI intent correct checkbox
+            const aiCorrectCheckbox = document.getElementById('ai_intent_correct');
+            if (aiCorrectCheckbox) {
+                aiCorrectCheckbox.checked = false;
+            }
+            
+            // Enable all radio buttons and clear selections
+            const matchRadios = document.querySelectorAll('input[name="intent_match"]');
+            matchRadios.forEach(radio => {
+                radio.disabled = false;
+                radio.checked = false;
+            });
+            
+            // Reset opacity of containers
+            const matchesContainer = document.getElementById('intent-matches-container');
+            const otherSection = document.getElementById('intent-other-section');
+            if (matchesContainer) {
+                matchesContainer.style.opacity = '1';
+            }
+            if (otherSection) {
+                otherSection.style.opacity = '1';
+            }
+            
+            // Clear and hide the "Other" text input
+            const otherTextInput = document.getElementById('intent_other_text');
+            if (otherTextInput) {
+                otherTextInput.value = '';
+                otherTextInput.style.display = 'none';
+            }
+        }
+
+        // Comprehensive reset for new video
+        function resetForNewVideo() {
+            // Reset the entire review form
+            const reviewForm = document.getElementById('reviewForm');
+            if (reviewForm) {
+                reviewForm.reset();
+            }
+            
+            // Reset specific form fields that might not be caught by form.reset()
+            const timelineValidation = document.getElementById('timelineValidation');
+            const stepRefinement = document.getElementById('stepRefinement');
+            const problemResolved = document.getElementById('problem_resolved');
+            const problemResolvedInPlace = document.getElementById('problem_resolved_in_place');
+            const resolutionCategory = document.getElementById('resolution_category');
+            
+            if (timelineValidation) timelineValidation.value = '';
+            if (stepRefinement) stepRefinement.value = '';
+            if (problemResolved) problemResolved.value = '';
+            if (problemResolvedInPlace) problemResolvedInPlace.value = '';
+            if (resolutionCategory) resolutionCategory.value = '';
+            
+            // Reset tools used checkboxes
+            const toolsCheckboxes = document.querySelectorAll('input[name="tools_used"]');
+            toolsCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Hide and clear the "Other" tool text input
+            const toolOtherText = document.getElementById('tool_other_text');
+            if (toolOtherText) {
+                toolOtherText.value = '';
+                toolOtherText.style.display = 'none';
+            }
+            
+            // Reset intent validation section
+            resetIntentValidationSection();
+            
+            // Reset progress bar
+            updateProgress();
+            
+            // Scroll to top of the page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Scroll timeline container to top
+            const timelineContainer = document.getElementById('interactionTimeline');
+            if (timelineContainer) {
+                timelineContainer.scrollTop = 0;
+            }
+            
+            // Also scroll the right column (review form) to top
+            const rightColumn = document.querySelector('.review-right-column');
+            if (rightColumn) {
+                rightColumn.scrollTop = 0;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+type: "web"
+# dev.yml for resolution-review-app
+# This file configures the service for Shopify's internal platforms.
+
+# Defines the primary programming language and framework.
+# This helps the platform optimize the build and runtime environment.
+language: "nodejs"
+
+# Build configuration specifies the command to build the application.
+# 'npm run build' is the standard command for Next.js projects.
+build: npm run build
+
+# Defines the command to start the application in production.
+# 'npm run start' is the standard command to run a Next.js app after it has been built.
+start: npm run start 
