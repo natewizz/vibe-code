@@ -1,0 +1,20 @@
+name: Security Code Scanner
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  security_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run security code scanner
+        uses: shopify-playground/github-actions/security-code-scanner@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
