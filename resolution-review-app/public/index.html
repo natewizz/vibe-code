@@ -660,6 +660,11 @@
                                 <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the problem was already solved or didn't need intervention.</span>
                             </li>
                             <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
+                            <li><strong>Not Resolved</strong>:<br>
+                                The advisor was unable to resolve the merchant's issue during the chat, and no actionable next steps were provided.
+                                <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this if the session ended without a solution or clear follow-up for the merchant.</span>
+                            </li>
+                            <hr style="border: none; border-top: 1px solid #bbb; margin: 16px 0;">
                             <li><strong>Other</strong>:<br>
                                 Any other resolution category that does not fit into the above categories.
                                 <br><span style="font-size: 90%; font-style: italic; color: #444;">Use this only if none of the other options apply—add a note if you pick this.</span>
@@ -756,17 +761,21 @@
                             <div class="card">
                                 <div class="card-header">
                                     <span class="step-counter">1</span>Timeline Review
-                                    <a href="#modifying-steps-guide" onclick="showTabAndScroll('training', 'modifying-steps-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline;">review the training</a>
+                                    <a href="#modifying-steps-guide" onclick="showTabAndScroll('training', 'modifying-steps-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline;">[review the training]</a>
                                 </div>
                                 <div class="card-body">
-                                    <div class="form-group" style="display: flex; gap: 20px;">
+                                    <div class="form-group" style="display: flex; gap: 20px; align-items: flex-end;">
                                         <div style="flex: 1;">
                                             <label for="timelineValidation">Timeline Validation</label>
-                                            <textarea id="timelineValidation" class="form-control" rows="4" placeholder="Note differences between the timeline and the video (e.g., incorrect or missing steps)."></textarea>
+                                            <textarea id="timelineValidation" class="form-control" rows="4" placeholder="Note differences between the timeline and the video (e.g., incorrect or missing steps)." maxlength="1500"></textarea>
                                         </div>
                                         <div style="flex: 1;">
                                             <label for="stepRefinement">Step Refinement</label>
-                                            <textarea id="stepRefinement" class="form-control" rows="4" placeholder="Suggest a better way a step could have been handled, or refine the wording."></textarea>
+                                            <textarea id="stepRefinement" class="form-control" rows="4" placeholder="Suggest a better way a step could have been handled, or refine the wording." maxlength="1500"></textarea>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 16px;">
+                                            <input type="checkbox" id="timeline_na" name="timeline_na">
+                                            <label for="timeline_na" style="font-size: 14px; margin-top: 4px;">N/A for both</label>
                                         </div>
                                     </div>
                                 </div>
@@ -775,7 +784,7 @@
                             <!-- Problem Resolution Block -->
                             <div class="card">
                                 <div class="card-header">
-                                    <span class="step-counter">2</span>Resolution Details
+                                    <span class="step-counter">2</span>Resolution Details <span style="color: red;">*</span>
                                     <a href="#resolution-status-guide" onclick="showTabAndScroll('training', 'resolution-status-guide'); return false;" style="margin-left: 12px; font-size: 14px; color: #667eea; text-decoration: underline;">(review the definitions)</a>
                                 </div>
                                 <div class="card-body">
@@ -807,6 +816,7 @@
                                             <option value="Escalated">Escalated</option>
                                             <option value="Resolved In Place With Action">Resolved In Place With Action</option>
                                             <option value="No Action Needed">No Action Needed</option>
+                                            <option value="Not Resolved">Not Resolved</option>
                                             <option value="Resolved In Place With Instruction">Resolved In Place With Instruction</option>
                                             <option value="Other">Other</option>
                                         </select>
@@ -835,6 +845,10 @@
                                             <div class="checkbox-item">
                                                 <input type="checkbox" id="tool_other_checkbox" name="tools_used" value="Other">
                                                 <label for="tool_other_checkbox">Other</label>
+                                            </div>
+                                            <div class="checkbox-item">
+                                                <input type="checkbox" id="tools_none_checkbox" name="tools_used" value="None">
+                                                <label for="tools_none_checkbox">None/NA</label>
                                             </div>
                                         </div>
                                         <input type="text" id="tool_other_text" class="form-control mt-2" placeholder="Please specify other tool(s)" style="display: none; margin-top: 10px;">
@@ -865,7 +879,7 @@
                                             </p>
                                         </div>
                                         
-                                        <label>Which is the most accurate match? <span style="color: red;">*</span></label>
+                                        <label>Which is the most accurate match?</label>
                                         <div id="intent-matches-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
                                             <!-- Radio buttons will be populated here by JavaScript -->
                                             <p style="color: #6c757d;">Loading matches...</p>
@@ -984,7 +998,7 @@
 
     <script>
         // Google Apps Script Web App URL - UPDATE THIS WITH YOUR DEPLOYED URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/shopify.com/s/AKfycby18ThykZn_zSpRdRNfOtMOe-9bQZupgf39KgKKdgKGqmhwtLBSnMjLMjFF0aSreHok/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/shopify.com/s/AKfycbwTjLAbagcSUfFbAc_yLYvmqmR0w2fXjc5xVuJSlfwmp8VzJN_WcX4-_TdRy-8Z2oYD/exec';
         
         // Expected data structure from Google Sheets (form_response_event tab):
         // Column E: Recording of the Interaction (video URL)
@@ -1132,6 +1146,31 @@
                 reviewData.problem_resolved = document.getElementById('problem_resolved').value;
                 reviewData.problem_resolved_in_place = document.getElementById('problem_resolved_in_place').value;
                 reviewData.resolution_category = document.getElementById('resolution_category').value;
+                
+                // Custom validation for Tools Used 'Other' field
+                const otherToolsCheckbox = document.getElementById('tool_other_checkbox');
+                const otherToolsText = document.getElementById('tool_other_text');
+                if (otherToolsCheckbox && otherToolsCheckbox.checked) {
+                    if (!otherToolsText.value.trim()) {
+                        alert('Please specify the other tool(s) used.');
+                        otherToolsText.focus();
+                        return;
+                    }
+                }
+                
+                // Custom validation for Tools Used 'None/NA' field
+                const toolsNoneCheckbox = document.getElementById('tools_none_checkbox');
+                const allToolCheckboxes = Array.from(document.querySelectorAll('input[name="tools_used"]')).filter(cb => cb !== toolsNoneCheckbox);
+                if (toolsNoneCheckbox && toolsNoneCheckbox.checked) {
+                    allToolCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+                } else {
+                    allToolCheckboxes.forEach(cb => { cb.disabled = false; });
+                    if (!toolsCheckboxes.length) {
+                        alert('Please select at least one tool used or check None/NA.');
+                        document.getElementById('toolsUsedCheckboxes').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return;
+                    }
+                }
                 
                 // Submit to Google Sheets
                 const success = await completeVideoReview(reviewData);
@@ -1303,6 +1342,42 @@
                     updateProgress();
                 }
             });
+
+            // Custom validation for Timeline Review N/A
+            const timelineNA = document.getElementById('timeline_na');
+            const timelineValidation = document.getElementById('timelineValidation');
+            const stepRefinement = document.getElementById('stepRefinement');
+            if (timelineNA && timelineNA.checked) {
+                timelineValidation.disabled = true;
+                stepRefinement.disabled = true;
+            } else {
+                timelineValidation.disabled = false;
+                stepRefinement.disabled = false;
+                if (!timelineValidation.value.trim() && !stepRefinement.value.trim()) {
+                    alert('Please fill out at least one Timeline Review field or check N/A.');
+                    timelineValidation.focus();
+                    return;
+                }
+            }
+
+            // Add event listener to N/A checkbox to toggle textarea disabled state
+            if (timelineNA) {
+                timelineNA.addEventListener('change', function() {
+                    timelineValidation.disabled = this.checked;
+                    stepRefinement.disabled = this.checked;
+                });
+            }
+
+            // Add event listener to None/NA checkbox to toggle other checkboxes
+            if (toolsNoneCheckbox) {
+                toolsNoneCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        allToolCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+                    } else {
+                        allToolCheckboxes.forEach(cb => { cb.disabled = false; });
+                    }
+                });
+            }
         });
         
         // Modified loadNextVideo to use prefetch
