@@ -765,17 +765,21 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="form-group" style="display: flex; gap: 20px; align-items: flex-end;">
-                                        <div style="flex: 1;">
-                                            <label for="timelineValidation">Timeline Validation</label>
+                                        <div style="flex: 1; display: flex; flex-direction: column;">
+                                            <label for="timelineValidation">Timeline Validation <span style='color: red;'>*</span></label>
                                             <textarea id="timelineValidation" class="form-control" rows="4" placeholder="Note differences between the timeline and the video (e.g., incorrect or missing steps)." maxlength="1500"></textarea>
+                                            <div style="margin-top: 6px;">
+                                                <input type="checkbox" id="timeline_na" name="timeline_na">
+                                                <label for="timeline_na" style="font-size: 14px;">N/A for Timeline Validation</label>
+                                            </div>
                                         </div>
-                                        <div style="flex: 1;">
-                                            <label for="stepRefinement">Step Refinement</label>
+                                        <div style="flex: 1; display: flex; flex-direction: column;">
+                                            <label for="stepRefinement">Step Refinement <span style='color: red;'>*</span></label>
                                             <textarea id="stepRefinement" class="form-control" rows="4" placeholder="Suggest a better way a step could have been handled, or refine the wording." maxlength="1500"></textarea>
-                                        </div>
-                                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 16px;">
-                                            <input type="checkbox" id="timeline_na" name="timeline_na">
-                                            <label for="timeline_na" style="font-size: 14px; margin-top: 4px;">N/A for both</label>
+                                            <div style="margin-top: 6px;">
+                                                <input type="checkbox" id="step_na" name="step_na">
+                                                <label for="step_na" style="font-size: 14px;">N/A for Step Refinement</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -831,7 +835,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="form-group">
-                                        <label for="toolsUsed">Which tools besides Beacon and the Internal Dashboard were used to resolve? <span style="font-weight: normal; color: #6c757d;">(Select all that apply)</span></label>
+                                        <label for="toolsUsed">Which tools besides Beacon and the Internal Dashboard were used to resolve? <span style="color: red;">*</span> <span style="font-weight: normal; color: #6c757d;">(Select all that apply)</span></label>
                                         <div id="toolsUsedCheckboxes" class="checkbox-group">
                                             <!-- Checkboxes will be dynamically populated or listed here -->
                                             <div class="checkbox-item"><input type="checkbox" name="tools_used" value="Reddit"><label>Reddit</label></div>
@@ -1172,6 +1176,23 @@
                     }
                 }
                 
+                // Custom validation for Timeline Validation N/A
+                const timelineNA = document.getElementById('timeline_na');
+                const timelineValidation = document.getElementById('timelineValidation');
+                const stepRefinement = document.getElementById('stepRefinement');
+                if (timelineNA && timelineNA.checked) {
+                    timelineValidation.disabled = true;
+                    stepRefinement.disabled = true;
+                } else {
+                    timelineValidation.disabled = false;
+                    stepRefinement.disabled = false;
+                    if (!timelineValidation.value.trim() && !stepRefinement.value.trim()) {
+                        alert('Please fill out at least one Timeline Review field or check N/A.');
+                        timelineValidation.focus();
+                        return;
+                    }
+                }
+                
                 // Submit to Google Sheets
                 const success = await completeVideoReview(reviewData);
                 if (success) {
@@ -1342,23 +1363,6 @@
                     updateProgress();
                 }
             });
-
-            // Custom validation for Timeline Review N/A
-            const timelineNA = document.getElementById('timeline_na');
-            const timelineValidation = document.getElementById('timelineValidation');
-            const stepRefinement = document.getElementById('stepRefinement');
-            if (timelineNA && timelineNA.checked) {
-                timelineValidation.disabled = true;
-                stepRefinement.disabled = true;
-            } else {
-                timelineValidation.disabled = false;
-                stepRefinement.disabled = false;
-                if (!timelineValidation.value.trim() && !stepRefinement.value.trim()) {
-                    alert('Please fill out at least one Timeline Review field or check N/A.');
-                    timelineValidation.focus();
-                    return;
-                }
-            }
 
             // Add event listener to N/A checkbox to toggle textarea disabled state
             if (timelineNA) {
@@ -2112,56 +2116,47 @@
         // Review tool progress tracking
         function updateProgress() {
             const fields = [
-                // Question 1: Timeline Review
-                document.getElementById('timelineValidation'),
-                document.getElementById('stepRefinement'),
-                
+                // Timeline Validation: textarea or N/A
+                (document.getElementById('timeline_na') && document.getElementById('timeline_na').checked) || (document.getElementById('timelineValidation') && document.getElementById('timelineValidation').value.trim() !== ''),
+                // Step Refinement: textarea or N/A
+                (document.getElementById('step_na') && document.getElementById('step_na').checked) || (document.getElementById('stepRefinement') && document.getElementById('stepRefinement').value.trim() !== ''),
                 // Question 2: Resolution Details
                 document.getElementById('problem_resolved'),
                 document.getElementById('problem_resolved_in_place'),
                 document.getElementById('resolution_category'),
-                
                 // Question 3: Tools Used (check if any tools are selected)
                 'tools_used_section',
-                
                 // Question 4: Intent Validation (check if AI checkbox or any radio is selected)
                 'intent_validation_section'
             ];
-            
             let completedFields = 0;
             const totalFields = fields.length;
-            
             fields.forEach(field => {
-                if (typeof field === 'string') {
+                if (typeof field === 'boolean') {
+                    if (field) completedFields++;
+                } else if (typeof field === 'string') {
                     // Handle special sections
                     if (field === 'tools_used_section') {
-                        // Check if any tools are selected
                         const toolsSelected = document.querySelectorAll('input[name="tools_used"]:checked');
                         if (toolsSelected.length > 0) {
                             completedFields++;
                         }
                     } else if (field === 'intent_validation_section') {
-                        // Check if AI intent checkbox is checked OR any radio button is selected
                         const aiCorrectCheckbox = document.getElementById('ai_intent_correct');
                         const selectedMatch = document.querySelector('input[name="intent_match"]:checked');
-                        
                         if ((aiCorrectCheckbox && aiCorrectCheckbox.checked) || selectedMatch) {
                             completedFields++;
                         }
                     }
                 } else {
-                    // Handle regular form fields
                     if (field && field.value && field.value.trim() !== '') {
                         completedFields++;
                     }
                 }
             });
-            
             const percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
-            
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
-
             if (progressBar) {
                 progressBar.style.width = percentage + '%';
             }
