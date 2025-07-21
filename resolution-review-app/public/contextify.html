@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contextify ⚡️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section h2 {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .field {
+            margin-bottom: 25px;
+        }
+
+        .field label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .required::after {
+            content: "*";
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .helper-text {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.5;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 40px;
+            appearance: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .preview {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            overflow-x: auto;
+            display: none;
+        }
+
+        #copyButton {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            margin-left: 15px;
+        }
+
+        #copyButton:hover {
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .button-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Contextify ⚡️</h1>
+            <p>Turn your "I want to build..." into AI prompts that actually get you started</p>
+        </div>
+
+        <form id="mixdownForm">
+            <div class="section">
+                <h2>What You're Building</h2>
+                <div class="form-row">
+                                         <div class="field">
+                         <label for="title" class="required">Project Name</label>
+                         <div class="helper-text">What do you want to call this thing?</div>
+                         <input type="text" id="title" placeholder="Discord Bot for Code Reviews" required>
+                     </div>
+                    <div class="field">
+                        <label for="author">Your Name</label>
+                        <div class="helper-text">So you remember who to blame later</div>
+                        <input type="text" id="author" placeholder="Your name here">
+                    </div>
+                </div>
+                                 <div class="field">
+                     <label for="description" class="required">The Vision</label>
+                     <div class="helper-text">Describe your idea - what problem are you solving or what cool thing are you making?</div>
+                     <textarea id="description" placeholder="I want to build a tool that..." required></textarea>
+                 </div>
+                <div class="field">
+                    <label for="tags">Keywords</label>
+                    <div class="helper-text">Help categorize this build (comma-separated)</div>
+                    <input type="text" id="tags" placeholder="web-app, automation, dashboard">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Project Context</h2>
+                <div class="field">
+                    <label for="context">Project Description</label>
+                    <div class="helper-text">What are you building? Describe the project, tool, or solution you want to create</div>
+                    <textarea id="context" placeholder="I'm building a task management dashboard for dev teams that integrates with GitHub and Slack..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="techStack">Development Constraints</label>
+                    <div class="helper-text">Any technical constraints, deployment requirements, or team preferences?</div>
+                    <textarea id="techStack" placeholder="Must work offline, needs to scale to 10k users, team familiar with web technologies..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="audience">Target Users</label>
+                    <div class="helper-text">Who will use this tool/project?</div>
+                    <input type="text" id="audience" placeholder="software developers, technical product managers">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Requirements & Examples</h2>
+                <div class="field">
+                    <label for="requirements">Core Requirements</label>
+                    <div class="helper-text">What are the must-have features and functionality?</div>
+                    <textarea id="requirements" placeholder="User authentication, real-time updates, drag-and-drop interface..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="examples">Reference Examples</label>
+                    <div class="helper-text">Any existing tools, apps, or code examples that inspire your vision?</div>
+                    <textarea id="examples" placeholder="Similar to Linear for project management, but with GitHub integration..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="userFlow">User Flow</label>
+                    <div class="helper-text">How will users interact with your tool?</div>
+                    <textarea id="userFlow" placeholder="User logs in → sees dashboard → creates new task → assigns to team member..."></textarea>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Keep in Mind</h2>
+                <div class="field">
+                    <label for="constraints">Don't Do This</label>
+                    <div class="helper-text">What should the AI avoid? Any gotchas or no-go zones?</div>
+                    <textarea id="constraints" placeholder="Don't over-engineer, avoid heavy frameworks, no PHP please..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="successCriteria">Success Looks Like</label>
+                    <div class="helper-text">How will you know this is working?</div>
+                    <textarea id="successCriteria" placeholder="Works locally, solves the core problem, I can demo it to friends..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="fallbackInstructions">If Stuck</label>
+                    <div class="helper-text">What should happen if the AI can't figure something out?</div>
+                    <textarea id="fallbackInstructions" placeholder="Suggest simpler alternatives, break into smaller pieces..."></textarea>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>What You Want</h2>
+                                 <div class="field">
+                     <label for="system" class="required">AI Persona</label>
+                     <div class="helper-text">What kind of coding partner do you want?</div>
+                     <textarea id="system" placeholder="You're a senior full-stack dev who loves clean code and helping others build cool stuff" required></textarea>
+                 </div>
+                                 <div class="field">
+                     <label for="instructions" class="required">The Ask</label>
+                     <div class="helper-text">What exactly do you want the AI to help you build?</div>
+                     <textarea id="instructions" placeholder="Help me build a modern, responsive dashboard that..." required></textarea>
+                 </div>
+            </div>
+
+            <div class="section">
+                <h2>Output Format</h2>
+                <div class="field">
+                    <label for="format">Format</label>
+                    <div class="helper-text">Choose how you want the prompt formatted</div>
+                    <select id="format">
+                        <option value="mixdown" selected>Mixdown</option>
+                        <option value="markdown">Markdown</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="button-group">
+                    <button type="submit">Generate Prompt</button>
+                    <button id="copyButton" type="button" style="display: none;">Copy to Clipboard</button>
+                </div>
+                <div id="preview" class="preview"></div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('mixdownForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                meta: {
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    author: document.getElementById('author').value,
+                    tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
+                },
+                context: document.getElementById('context').value,
+                techStack: document.getElementById('techStack').value,
+                requirements: document.getElementById('requirements').value,
+                examples: document.getElementById('examples').value,
+                userFlow: document.getElementById('userFlow').value,
+                audience: document.getElementById('audience').value,
+                constraints: document.getElementById('constraints').value,
+                successCriteria: document.getElementById('successCriteria').value,
+                fallbackInstructions: document.getElementById('fallbackInstructions').value,
+                system: document.getElementById('system').value,
+                instructions: document.getElementById('instructions').value,
+                output: {
+                    format: document.getElementById('format').value,
+                },
+            };
+
+            let output;
+            if (formData.output.format === 'markdown') {
+                output = `# ${formData.meta.title}
+
+## The Vision
+${formData.meta.description}
+
+## Project Info
+- Author: ${formData.meta.author}
+- Tags: ${formData.meta.tags.join(', ')}
+- Target Users: ${formData.audience}
+
+## Project Context
+${formData.context}
+
+## Development Constraints
+${formData.techStack}
+
+## Core Requirements
+${formData.requirements}
+
+## Reference Examples
+${formData.examples}
+
+## User Flow
+${formData.userFlow}
+
+## AI Persona
+${formData.system}
+
+## The Ask
+${formData.instructions}
+
+## Don't Do This
+${formData.constraints}
+
+## Success Looks Like
+${formData.successCriteria}
+
+## If Stuck
+${formData.fallbackInstructions}
+
+## Output Specifications
+- Format: ${formData.output.format}`;
+            } else {
+                output = `<prompt>
+  <meta>
+    title: ${formData.meta.title}
+    description: ${formData.meta.description}
+    author: ${formData.meta.author}
+    target_users: ${formData.audience}
+    tags: ${formData.meta.tags.join(', ')}
+  </meta>
+  
+  <params>
+    output_format: ${formData.output.format}
+    target_audience: ${formData.audience}
+    constraints: ${formData.constraints}
+    success_criteria: ${formData.successCriteria}
+    fallback_strategy: ${formData.fallbackInstructions}
+  </params>
+  
+  <system>
+${formData.system}
+  </system>
+  
+  <instructions>
+${formData.instructions}
+
+Project Context: ${formData.context}
+Development Constraints: ${formData.techStack}
+Core Requirements: ${formData.requirements}
+Reference Examples: ${formData.examples}
+User Flow: ${formData.userFlow}
+  </instructions>
+</prompt>`;
+            }
+
+            // Show preview
+            const preview = document.getElementById('preview');
+            preview.textContent = output;
+            preview.style.display = 'block';
+            
+            // Show copy button
+            const copyButton = document.getElementById('copyButton');
+            copyButton.style.display = 'inline-block';
+        });
+
+        // Copy to clipboard functionality
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const preview = document.getElementById('preview');
+            const textToCopy = preview.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Visual feedback
+                const button = document.getElementById('copyButton');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = 'linear-gradient(45deg, #27ae60, #2ecc71)';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = 'linear-gradient(45deg, #27ae60, #2ecc71)';
+                }, 1500);
+            }).catch(function(err) {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy to clipboard');
+            });
+        });
+    </script>
+</body>
+</html> 
